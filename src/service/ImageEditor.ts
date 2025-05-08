@@ -5,6 +5,7 @@ interface ImageEditorType {
   draw(lineWidth: number, strokeStyle: string): void;
   disableDrawing(): void;
   saveImage(): void;
+  lazyPipeline(img: HTMLImageElement): void
 }
 
 export class ImageEditor implements ImageEditorType {
@@ -127,5 +128,13 @@ export class ImageEditor implements ImageEditorType {
     link.download = "edited-image.png";
     link.href = url;
     link.click();
+  }
+
+  *lazyPipeline(img: HTMLImageElement) {
+    yield () => this.drawImage(img);
+    yield () => this.flip("horizontal");
+    yield () => this.rotate("right", 180);
+    yield () => this.draw(3, "#00ff00");
+    yield () => this.saveImage();
   }
 }

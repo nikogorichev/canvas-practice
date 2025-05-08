@@ -1,10 +1,30 @@
 import React, { useRef, useState } from "react";
 import { ImageEditor } from "../service/ImageEditor";
+import { createEditorProxy } from "../service/createEditorProxy";
+import { HistoryComponent } from "./HistoryComponent";
 
-export default function EditorComponent() {
+export function EditorComponent() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editor, setEditor] = useState<ImageEditor | null>(null);
+  const [logs, setLogs] = useState<Array<string>>([]);
+
+  const logAction = ({
+    method,
+    args,
+    timestamp,
+    durationMs,
+  }: {
+    method: keyof ImageEditor;
+    args: Array<unknown>;
+    timestamp: Date;
+    durationMs: number;
+  }) => {
+    setLogs((prev) => [
+      ...prev,
+      `[${timestamp.toLocaleTimeString()}] ${String(method)}(${args.join(", ")}) - ${durationMs.toFixed(2)}ms`,
+    ]);
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -20,8 +40,9 @@ export default function EditorComponent() {
           return;
         }
         const newEditor = new ImageEditor(canvasRef.current);
-        newEditor.drawImage(img);
-        setEditor(newEditor);
+        const proxyEditor = createEditorProxy(newEditor, logAction);
+        proxyEditor.drawImage(img);
+        setEditor(proxyEditor);
       };
       img.src = event.target?.result as string;
     };
@@ -33,22 +54,22 @@ export default function EditorComponent() {
   };
 
   const handleFlipHorizontally = () => {
-    stopDrawing()
+    stopDrawing();
     editor?.flip("horizontal");
   };
 
   const handleFlipVertically = () => {
-    stopDrawing()
+    stopDrawing();
     editor?.flip("vertical");
   };
 
   const handleRotateRight = () => {
-    stopDrawing()
+    stopDrawing();
     editor?.rotate("right");
   };
 
   const handleRotateLeft = () => {
-    stopDrawing()
+    stopDrawing();
     editor?.rotate("left");
   };
 
@@ -57,12 +78,12 @@ export default function EditorComponent() {
   };
 
   const saveImage = () => {
-    stopDrawing()
+    stopDrawing();
     editor?.saveImage();
   };
 
   return (
-    <div>
+    <>
       <h1>Редактор фото</h1>
       <input
         type="file"
@@ -85,6 +106,8 @@ export default function EditorComponent() {
           <button onClick={saveImage}>Сохранить</button>
         </div>
       )}
-    </div>
+
+     <HistoryComponent logs={logs}/>
+    </>
   );
 }

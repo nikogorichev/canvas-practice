@@ -1,9 +1,7 @@
-import EditorComponent from "./view/EditorComponent"
+import { EditorComponent } from "./view/EditorComponent";
 
 function App() {
-  return (
-    <EditorComponent/>
-  )
+  return <EditorComponent />;
 }
 
-export default App
+export default App;
