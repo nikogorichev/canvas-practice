@@ -28,16 +28,28 @@ export default function EditorComponent() {
     reader.readAsDataURL(file);
   };
 
+  const stopDrawing = () => {
+    editor?.disableDrawing();
+  };
+
   const handleFlipHorizontally = () => {
+    stopDrawing()
     editor?.flip("horizontal");
   };
 
   const handleFlipVertically = () => {
+    stopDrawing()
     editor?.flip("vertical");
   };
 
-  const handleRotate = () => {
-    editor?.rotate(90);
+  const handleRotateRight = () => {
+    stopDrawing()
+    editor?.rotate("right");
+  };
+
+  const handleRotateLeft = () => {
+    stopDrawing()
+    editor?.rotate("left");
   };
 
   const handleDrawing = () => {
@@ -45,6 +57,7 @@ export default function EditorComponent() {
   };
 
   const saveImage = () => {
+    stopDrawing()
     editor?.saveImage();
   };
 
@@ -58,13 +71,20 @@ export default function EditorComponent() {
         ref={fileInputRef}
       />
       <canvas ref={canvasRef} />
-      <div className="flex gap-2">
-        <button onClick={handleFlipHorizontally}>flipHorizontally</button>
-        <button onClick={handleFlipVertically}>handleFlipVertically</button>
-        <button onClick={handleRotate}>rotate</button>
-        <button onClick={handleDrawing}>draw</button>
-        <button onClick={saveImage}>Save</button>
-      </div>
+      {fileInputRef.current && (
+        <div>
+          <button onClick={handleFlipHorizontally}>
+            Отзеркалить горизонтально
+          </button>
+          <button onClick={handleFlipVertically}>
+            Отзеркалить вертикально
+          </button>
+          <button onClick={handleRotateLeft}>Повернуть влево</button>
+          <button onClick={handleRotateRight}>Повернуть вправо</button>
+          <button onClick={handleDrawing}>Рисовать</button>
+          <button onClick={saveImage}>Сохранить</button>
+        </div>
+      )}
     </div>
   );
 }

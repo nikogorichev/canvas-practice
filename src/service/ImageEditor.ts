@@ -1,14 +1,19 @@
 interface ImageEditorType {
   drawImage(img: HTMLImageElement): void;
   flip(axis: "horizontal" | "vertical"): void;
-  rotate(degrees: number): void;
+  rotate(direction: "left" | "right", degrees: number): void;
   draw(lineWidth: number, strokeStyle: string): void;
+  disableDrawing(): void;
   saveImage(): void;
 }
 
 export class ImageEditor implements ImageEditorType {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  private isDrawingEnabled = false;
+  private startDraw?: (e: MouseEvent) => void;
+  private drawMove?: (e: MouseEvent) => void;
+  private stopDraw?: () => void;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -45,8 +50,9 @@ export class ImageEditor implements ImageEditorType {
     this.ctx.drawImage(tempCanvas, 0, 0);
   }
 
-  rotate(degrees: number) {
-    const radians = (degrees * Math.PI) / 180;
+  rotate(direction: "left" | "right", degrees: number = 90) {
+    const degreesValue = direction === "right" ? degrees : -degrees;
+    const radians = (degreesValue * Math.PI) / 180;
     const { width, height } = this.canvas;
     const tempCanvas = document.createElement("canvas");
     tempCanvas.width = width;
@@ -65,33 +71,54 @@ export class ImageEditor implements ImageEditorType {
   }
 
   draw(lineWidth: number = 5, strokeStyle: string = "#ff0000") {
-    let drawing = false;
+    if (this.isDrawingEnabled) {
+      return;
+    }
+    this.isDrawingEnabled = true;
 
     this.ctx.lineWidth = lineWidth;
     this.ctx.strokeStyle = strokeStyle;
     this.ctx.lineJoin = "round";
     this.ctx.lineCap = "round";
 
-    const startDraw = (e: MouseEvent) => {
+    let drawing = false;
+
+    this.startDraw = (e: MouseEvent) => {
       drawing = true;
       this.ctx.beginPath();
       this.ctx.moveTo(e.offsetX, e.offsetY);
     };
-
-    const draw = (e: MouseEvent) => {
+    this.drawMove = (e: MouseEvent) => {
       if (!drawing) return;
       this.ctx.lineTo(e.offsetX, e.offsetY);
       this.ctx.stroke();
     };
-
-    const stopDraw = () => {
+    this.stopDraw = () => {
       drawing = false;
       this.ctx.closePath();
     };
 
-    this.canvas.addEventListener("mousedown", startDraw);
-    this.canvas.addEventListener("mousemove", draw);
-    window.addEventListener("mouseup", stopDraw);
+    this.canvas.addEventListener("mousedown", this.startDraw);
+    this.canvas.addEventListener("mousemove", this.drawMove);
+    window.addEventListener("mouseup", this.stopDraw);
+  }
+
+  disableDrawing() {
+    if (!this.isDrawingEnabled) {
+      return;
+    }
+
+    if (this.startDraw) {
+      this.canvas.removeEventListener("mousedown", this.startDraw);
+    }
+    if (this.drawMove) {
+      this.canvas.removeEventListener("mousemove", this.drawMove);
+    }
+    if (this.stopDraw) {
+      window.removeEventListener("mouseup", this.stopDraw);
+    }
+
+    this.isDrawingEnabled = false;
   }
 
   saveImage() {
