@@ -1,14 +1,6 @@
-interface ImageEditorType {
-  drawImage(img: HTMLImageElement): void;
-  flip(axis: "horizontal" | "vertical"): void;
-  rotate(direction: "left" | "right", degrees: number): void;
-  draw(lineWidth: number, strokeStyle: string): void;
-  disableDrawing(): void;
-  saveImage(): void;
-  lazyPipeline(img: HTMLImageElement): void
-}
+import type { IImageEditor } from "../types";
 
-export class ImageEditor implements ImageEditorType {
+export class ImageEditor implements IImageEditor {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private isDrawingEnabled = false;
